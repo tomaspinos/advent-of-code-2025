@@ -58,6 +58,4 @@ fun readBanks(filename: String): List<List<Int>> {
     return resourceFile(filename).readLines().map { readBank(it) }
 }
 
-fun readBank(s: String): List<Int> {
-    return s.toCharArray().map { c -> Integer.parseInt(c.toString()) }.toList()
-}
+fun readBank(s: String): List<Int> = s.map { it.digitToInt() }
