@@ -33,7 +33,7 @@ class Day06Test {
 
     @Test
     fun testComputeColumn() {
-        assertEquals(33210, computeColumn(Column(listOf(123L, 45L, 6L), Operator.MULTIPLY)))
-        assertEquals(490, computeColumn(Column(listOf(328L, 64L, 98L), Operator.PLUS)))
+        assertEquals(33210, Column(listOf(123L, 45L, 6L), Operator.MULTIPLY).compute())
+        assertEquals(490, Column(listOf(328L, 64L, 98L), Operator.PLUS).compute())
     }
 }
