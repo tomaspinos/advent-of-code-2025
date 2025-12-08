@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 
 private const val INPUT = "/day08/input.txt"
 
-class Day07Test {
+class Day08Test {
 
     @Test
     fun part1() {
