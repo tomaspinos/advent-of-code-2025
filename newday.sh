@@ -1,5 +1,5 @@
 #!/bin/bash
-DAY=day07
+DAY=day08
 mkdir -p src/main/kotlin/$DAY
 mkdir -p src/test/kotlin/$DAY
 mkdir -p src/main/resources/$DAY

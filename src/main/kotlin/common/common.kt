@@ -1,6 +1,8 @@
 package common
 
 import java.io.File
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 fun resourceFile(name: String): File {
     return File(object {}.javaClass.getResource(name).toURI())
@@ -33,6 +35,11 @@ data class XY(val x: Int, val y: Int) {
 
     fun <T> isValid(array: Array<Array<T>>): Boolean = y in array.indices && x in array[0].indices
     fun isValid(width: Int, height: Int): Boolean = y in 0..<height && x in 0..<width
+}
+
+data class XYZ(val x: Int, val y: Int, val z: Int) {
+    fun distanceTo(other: XYZ): Double =
+        sqrt((x - other.x).toDouble().pow(2) + (y - other.y).toDouble().pow(2) + (z - other.z).toDouble().pow(2))
 }
 
 fun <T> value(array: Array<Array<T>>, xy: XY): T = array[xy.y][xy.x]
