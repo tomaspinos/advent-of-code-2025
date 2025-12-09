@@ -1,5 +1,6 @@
 package day09
 
+import com.sun.source.tree.Tree
 import common.XY
 import common.resourceFile
 import java.util.*
@@ -44,10 +45,12 @@ class Day09(val filename: String) {
 
 data class Edge(val from: XY, val to: XY)
 
-data class HEdgesAndVBorders(val hEdges: Map<Int, List<Edge>>, val vBorders: MutableMap<Int, TreeSet<Int>>)
+data class EdgesOnY(val byFromX: TreeMap<Int, Edge>, val byToX: TreeMap<Int, Edge>)
+
+data class HEdgesAndVBorders(val hEdges: Map<Int, EdgesOnY>, val vBorders: MutableMap<Int, TreeSet<Int>>)
 
 fun edgesAndBorders(points: List<XY>): HEdgesAndVBorders {
-    val hEdges = mutableMapOf<Int, MutableList<Edge>>()
+    val hEdges = mutableMapOf<Int, EdgesOnY>()
     val vBorders = mutableMapOf<Int, TreeSet<Int>>()
 
     val closedPoints = mutableListOf<XY>()
@@ -69,9 +72,13 @@ fun edgesAndBorders(points: List<XY>): HEdgesAndVBorders {
         } else {
             // horizontal edge
             if (!hEdges.contains(from.y)) {
-                hEdges[from.y] = mutableListOf()
+                hEdges[from.y] = EdgesOnY(TreeMap(), TreeMap())
             }
-            hEdges[from.y]!!.add(Edge(XY(min(from.x, to.x), from.y), XY(max(from.x, to.x), from.y)))
+            val fromX = min(from.x, to.x)
+            val toX = max(from.x, to.x)
+            val edge = Edge(XY(fromX, from.y), XY(toX, from.y))
+            hEdges[from.y]!!.byFromX.put(fromX, edge)
+            hEdges[from.y]!!.byToX.put(toX, edge)
         }
         from = to
     }
@@ -84,7 +91,7 @@ fun checkRectangle(rectangle: Rectangle, edgesAndBorders: HEdgesAndVBorders): Bo
     val upLeft = rectangle.upLeft()
     val downRight = rectangle.downRight()
     for (y in upLeft.y..downRight.y) {
-        val hEdges = edgesAndBorders.hEdges.getOrElse(y) { listOf() }
+        val hEdges = edgesAndBorders.hEdges.getOrElse(y) { EdgesOnY(TreeMap(), TreeMap()) }
         val vBorders = edgesAndBorders.vBorders.getOrElse(y) { TreeSet() }
         for (x in upLeft.x..downRight.x) {
             if (!checkX(x, hEdges, vBorders)) {
@@ -97,16 +104,17 @@ fun checkRectangle(rectangle: Rectangle, edgesAndBorders: HEdgesAndVBorders): Bo
     return true
 }
 
-fun checkX(x: Int, hEdges: List<Edge>, vBorders: TreeSet<Int>): Boolean {
-    val containingEdge = hEdges.find { it.from.x <= x && it.to.x >= x }
-    if (containingEdge != null) return true
+fun checkX(x: Int, hEdges: EdgesOnY, vBorders: TreeSet<Int>): Boolean {
+    val edgeOnLeft = hEdges.byFromX.floorEntry(x)
+    val edgeOnRight = hEdges.byToX.ceilingEntry(x)
+    if (edgeOnLeft != null && edgeOnLeft == edgeOnRight) return true
 
     if (vBorders.contains(x)) return true
 
     val headBorders = vBorders.headSet(x)
     if (headBorders.size % 2 == 1) return true
 
-    val edgeBefore = hEdges.find { it.to.x < x }
+    val edgeBefore = hEdges.byToX.floorEntry(x)
     val tailBorders = vBorders.tailSet(x)
     if (edgeBefore != null && tailBorders.size % 2 == 1) return true
 

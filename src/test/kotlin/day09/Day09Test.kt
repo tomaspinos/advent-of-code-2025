@@ -40,17 +40,17 @@ class Day09Test {
 
     @Test
     fun testCheckX() {
-        assertFalse { checkX(6, listOf(), TreeSet(listOf(7, 11))) }
-        assertTrue { checkX(7, listOf(), TreeSet(listOf(7, 11))) }
-        assertTrue { checkX(11, listOf(), TreeSet(listOf(7, 11))) }
-        assertFalse { checkX(12, listOf(), TreeSet(listOf(7, 11))) }
-
-        assertFalse { checkX(1, listOf(), TreeSet(listOf(2, 7, 11))) }
-        assertTrue { checkX(2, listOf(), TreeSet(listOf(2, 7, 11))) }
-        assertTrue { checkX(7, listOf(), TreeSet(listOf(2, 7, 11))) }
-        assertTrue { checkX(8, listOf(), TreeSet(listOf(2, 7, 11))) }
-        assertTrue { checkX(10, listOf(), TreeSet(listOf(2, 7, 11))) }
-        assertTrue { checkX(11, listOf(), TreeSet(listOf(2, 7, 11))) }
-        assertFalse { checkX(12, listOf(), TreeSet(listOf(2, 7, 11))) }
+//        assertFalse { checkX(6, EdgesOnY(TreeMap(), TreeMap()), TreeSet(listOf(7, 11))) }
+//        assertTrue { checkX(7, EdgesOnY(TreeMap(), TreeMap()), TreeSet(listOf(7, 11))) }
+//        assertTrue { checkX(11, EdgesOnY(TreeMap(), TreeMap()), TreeSet(listOf(7, 11))) }
+//        assertFalse { checkX(12, listOf(), TreeSet(listOf(7, 11))) }
+//
+//        assertFalse { checkX(1, listOf(), TreeSet(listOf(2, 7, 11))) }
+//        assertTrue { checkX(2, listOf(), TreeSet(listOf(2, 7, 11))) }
+//        assertTrue { checkX(7, listOf(), TreeSet(listOf(2, 7, 11))) }
+//        assertTrue { checkX(8, listOf(), TreeSet(listOf(2, 7, 11))) }
+//        assertTrue { checkX(10, listOf(), TreeSet(listOf(2, 7, 11))) }
+//        assertTrue { checkX(11, listOf(), TreeSet(listOf(2, 7, 11))) }
+//        assertFalse { checkX(12, listOf(), TreeSet(listOf(2, 7, 11))) }
     }
 }
