@@ -1,6 +1,5 @@
 package day09
 
-import com.sun.source.tree.Tree
 import common.XY
 import common.resourceFile
 import java.util.*
@@ -10,10 +9,24 @@ import kotlin.math.min
 
 fun main() {
     val day = Day09("/day09/input.txt")
+    //println(day.part1())
     println(day.part2())
 }
 
 class Day09(val filename: String) {
+
+    fun part1(): Long {
+        val points = readInput(filename)
+        val rectangles = mutableListOf<Rectangle>()
+        for (i in points.indices) {
+            for (j in i + 1..<points.size) {
+                rectangles.add(Rectangle(points[i], points[j]))
+            }
+        }
+        rectangles.sortByDescending { it.area }
+
+        return rectangles.first().area
+    }
 
     fun part2(): Long {
         val points = readInput(filename)
@@ -62,7 +75,7 @@ fun edgesAndBorders(points: List<XY>): HEdgesAndVBorders {
         val to = closedPoints[i]
         if (from.x == to.x) {
             // vertical edge
-            for (y in min(from.y, to.y)..max(from.y, to.y)) {
+            for (y in min(from.y, to.y) + 1..<max(from.y, to.y)) {
                 if (vBorders.containsKey(y)) {
                     vBorders[y]!!.add(from.x)
                 } else {
@@ -93,32 +106,59 @@ fun checkRectangle(rectangle: Rectangle, edgesAndBorders: HEdgesAndVBorders): Bo
     for (y in upLeft.y..downRight.y) {
         val hEdges = edgesAndBorders.hEdges.getOrElse(y) { EdgesOnY(TreeMap(), TreeMap()) }
         val vBorders = edgesAndBorders.vBorders.getOrElse(y) { TreeSet() }
-        for (x in upLeft.x..downRight.x) {
-            if (!checkX(x, hEdges, vBorders)) {
-//                println("$x,$y")
-                return false
+
+        var x = upLeft.x
+        while (x <= downRight.x) {
+            println("$x,$y")
+
+            // inside horizontal edge?
+            val edgeOnLeft = hEdges.byFromX.floorEntry(x)
+            val edgeOnRight = hEdges.byToX.ceilingEntry(x)
+            // the point is inside a horizontal edge
+            if (edgeOnLeft != null && edgeOnRight != null && edgeOnLeft.value == edgeOnRight.value) {
+                x = edgeOnRight.value!!.to.x + 1
+                continue
+            }
+
+            // inside vertical edge?
+            if (vBorders.contains(x)) {
+                x++
+                continue
+            }
+
+            val headBorders = vBorders.headSet(x)
+            if (headBorders.isNotEmpty()) {
+                // there is a vertical edge on the left
+                if (headBorders.size % 2 == 1) {
+                    // inside the polygon
+                    val tailBorders = vBorders.tailSet(x)
+                    check(tailBorders.isNotEmpty()) { "Lost inside the polygon" }
+                    x = tailBorders.first() + 1
+                    continue
+                } else {
+                    // outside the polygon
+                    return false
+                }
+            } else {
+                // there is no vertical edge on the left
+                // maybe there's a horizontal edge on the left
+                if (edgeOnLeft != null) {
+                    val yMinu1Inside = edgesAndBorders.vBorders.getOrElse(y - 1) { TreeSet() }.headSet(x).size % 2 == 1
+                    val yPlus1Inside = edgesAndBorders.vBorders.getOrElse(y + 1) { TreeSet() }.headSet(x).size % 2 == 1
+                    if (yMinu1Inside || yPlus1Inside) {
+                        x++
+                        continue
+                    } else {
+                        return false
+                    }
+                } else {
+                    return false
+                }
             }
         }
     }
 
     return true
-}
-
-fun checkX(x: Int, hEdges: EdgesOnY, vBorders: TreeSet<Int>): Boolean {
-    val edgeOnLeft = hEdges.byFromX.floorEntry(x)
-    val edgeOnRight = hEdges.byToX.ceilingEntry(x)
-    if (edgeOnLeft != null && edgeOnLeft == edgeOnRight) return true
-
-    if (vBorders.contains(x)) return true
-
-    val headBorders = vBorders.headSet(x)
-    if (headBorders.size % 2 == 1) return true
-
-    val edgeBefore = hEdges.byToX.floorEntry(x)
-    val tailBorders = vBorders.tailSet(x)
-    if (edgeBefore != null && tailBorders.size % 2 == 1) return true
-
-    return false
 }
 
 data class Rectangle(
