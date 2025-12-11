@@ -32,10 +32,48 @@ class Day11(val filename: String) {
         return pathCount["out"]!!
     }
 
-    fun part2(): Long {
-        val points = readInput(filename)
-        return 1
+    fun part2(): Int {
+        val connections = readInput(filename)
+
+        val paths = search("svr", "out", connections)
+
+        return paths.size
     }
+}
+
+fun search(from: String, to: String, connections: Map<String, List<String>>): List<Path> {
+    var finishedPaths = mutableListOf<Path>()
+
+    val firstPath = Path(from, null)
+    var livePaths = mutableListOf<Path>();
+    livePaths.addAll(connections[from]!!.map { Path(it, firstPath) })
+
+    while (livePaths.isNotEmpty()) {
+        println(livePaths.size)
+        val nextLivePaths = mutableListOf<Path>()
+
+        for (path in livePaths) {
+            val nextItems = connections[path.last]
+            if (nextItems != null) {
+                for (nextItem in nextItems) {
+                    if (nextItem == to) {
+                        finishedPaths.add(path)
+                    } else if (!path.contains(nextItem)) {
+                        nextLivePaths.add(path.extend(nextItem))
+                    }
+                }
+            }
+        }
+
+        livePaths = nextLivePaths
+    }
+
+    return finishedPaths
+}
+
+data class Path(val last: String, val parent: Path?) {
+    fun extend(item: String): Path = Path(item, this)
+    fun contains(item: String): Boolean = last == item || (parent != null && parent.contains(item))
 }
 
 fun readInput(filename: String): Map<String, List<String>> {
