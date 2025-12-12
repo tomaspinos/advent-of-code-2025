@@ -1,7 +1,7 @@
 package day11
 
 import common.resourceFile
-import java.util.*
+import day11.ResultStatus.*
 
 fun main() {
     val day = Day11("/day11/input.txt")
@@ -33,21 +33,15 @@ class Day11(val filename: String) {
         return pathCount["out"]!!
     }
 
-    fun part2(): Int {
+    fun part2(): Long {
         val connections = readInput(filename)
 
-        val results = mutableMapOf<Pair<String, String>, List<Path>>()
-        results[Pair("out", "out")] = listOf(Path("out", null))
+        val results = mutableMapOf<Pair<String, String>, PartialResult>()
+        results[Pair("out", "out")] = PartialResult(mutableMapOf()).plus(OTHER, 1)
 
         dfs("svr", "out", connections, emptySet(), results)
 
-        val paths = results[Pair("svr", "out")]!!
-        println(paths.size)
-        paths.forEach { println(it) }
-
-        val goodPaths = paths.filter { it.contains("dac") && it.contains("fft") }
-
-        return goodPaths.size
+        return results[Pair("svr", "out")]!!.get(DAC_AND_FFT)
     }
 }
 
@@ -56,7 +50,7 @@ fun dfs(
     to: String,
     connections: Map<String, List<String>>,
     visited: Set<String>,
-    results: MutableMap<Pair<String, String>, List<Path>>
+    results: MutableMap<Pair<String, String>, PartialResult>
 ) {
     if (from == to) {
         return
@@ -66,33 +60,39 @@ fun dfs(
         return
     } else {
         val nextVisited = visited + from
-        val nextPaths = mutableListOf<Path>()
+        var myResult = PartialResult(mutableMapOf())
         for (nextItem in connections[from]!!) {
             dfs(nextItem, to, connections, nextVisited, results)
-            nextPaths.addAll(results[Pair(nextItem, to)]!!)
+            val nextResult = results[Pair(nextItem, to)]!!
+            if (from == "dac") {
+                myResult.plus(DAC_AND_FFT, nextResult.get(FFT_ONLY))
+                myResult.plus(DAC_ONLY, nextResult.get(OTHER))
+            } else if (from == "fft") {
+                myResult.plus(DAC_AND_FFT, nextResult.get(DAC_ONLY))
+                myResult.plus(FFT_ONLY, nextResult.get(OTHER))
+            } else {
+                myResult.plus(DAC_AND_FFT, nextResult.get(DAC_AND_FFT))
+                myResult.plus(DAC_ONLY, nextResult.get(DAC_ONLY))
+                myResult.plus(FFT_ONLY, nextResult.get(FFT_ONLY))
+                myResult.plus(OTHER, nextResult.get(OTHER))
+            }
         }
-        if (nextPaths.isNotEmpty()) {
-            val paths = nextPaths.map { Path(from, null).extend(it) }
-            results[Pair(from, to)] = paths
-        } else {
-            results[Pair(from, to)] = listOf()
-        }
+        results[Pair(from, to)] = myResult
     }
 }
 
-data class PartialResult(val dac: Boolean, val fft: Boolean)
+enum class ResultStatus {
+    DAC_AND_FFT,
+    DAC_ONLY,
+    FFT_ONLY,
+    OTHER
+}
 
-data class Path(val last: String, val parent: Path?) {
-    fun extend(item: String): Path = Path(item, this)
-    fun extend(path: Path): Path {
-        var newPath = Path(last, null)
-        path.items().forEach { newPath = newPath.extend(it) }
-        return newPath
-    }
-    fun contains(item: String): Boolean = last == item || (parent != null && parent.contains(item))
-    fun items(): List<String> = if (parent != null) parent.items() + last else listOf(last)
-    override fun toString(): String {
-        return items().toString()
+data class PartialResult(val counts: MutableMap<ResultStatus, Long>) {
+    fun get(status: ResultStatus): Long = counts.getOrDefault(status, 0)
+    fun plus(status: ResultStatus, count: Long): PartialResult {
+        counts.merge(status, count, Long::plus)
+        return this
     }
 }
 
