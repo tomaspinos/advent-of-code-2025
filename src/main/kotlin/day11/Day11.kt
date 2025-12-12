@@ -1,6 +1,7 @@
 package day11
 
 import common.resourceFile
+import java.util.*
 
 fun main() {
     val day = Day11("/day11/input.txt")
@@ -35,45 +36,64 @@ class Day11(val filename: String) {
     fun part2(): Int {
         val connections = readInput(filename)
 
-        val paths = search("svr", "out", connections)
+        val results = mutableMapOf<Pair<String, String>, List<Path>>()
+        results[Pair("out", "out")] = listOf(Path("out", null))
 
-        return paths.size
+        dfs("svr", "out", connections, emptySet(), results)
+
+        val paths = results[Pair("svr", "out")]!!
+        println(paths.size)
+        paths.forEach { println(it) }
+
+        val goodPaths = paths.filter { it.contains("dac") && it.contains("fft") }
+
+        return goodPaths.size
     }
 }
 
-fun search(from: String, to: String, connections: Map<String, List<String>>): List<Path> {
-    var finishedPaths = mutableListOf<Path>()
-
-    val firstPath = Path(from, null)
-    var livePaths = mutableListOf<Path>();
-    livePaths.addAll(connections[from]!!.map { Path(it, firstPath) })
-
-    while (livePaths.isNotEmpty()) {
-        println(livePaths.size)
-        val nextLivePaths = mutableListOf<Path>()
-
-        for (path in livePaths) {
-            val nextItems = connections[path.last]
-            if (nextItems != null) {
-                for (nextItem in nextItems) {
-                    if (nextItem == to) {
-                        finishedPaths.add(path)
-                    } else if (!path.contains(nextItem)) {
-                        nextLivePaths.add(path.extend(nextItem))
-                    }
-                }
-            }
+fun dfs(
+    from: String,
+    to: String,
+    connections: Map<String, List<String>>,
+    visited: Set<String>,
+    results: MutableMap<Pair<String, String>, List<Path>>
+) {
+    if (from == to) {
+        return
+    } else if (visited.contains(from)) {
+        return
+    } else if (results.contains(Pair(from, to))) {
+        return
+    } else {
+        val nextVisited = visited + from
+        val nextPaths = mutableListOf<Path>()
+        for (nextItem in connections[from]!!) {
+            dfs(nextItem, to, connections, nextVisited, results)
+            nextPaths.addAll(results[Pair(nextItem, to)]!!)
         }
-
-        livePaths = nextLivePaths
+        if (nextPaths.isNotEmpty()) {
+            val paths = nextPaths.map { Path(from, null).extend(it) }
+            results[Pair(from, to)] = paths
+        } else {
+            results[Pair(from, to)] = listOf()
+        }
     }
-
-    return finishedPaths
 }
+
+data class PartialResult(val dac: Boolean, val fft: Boolean)
 
 data class Path(val last: String, val parent: Path?) {
     fun extend(item: String): Path = Path(item, this)
+    fun extend(path: Path): Path {
+        var newPath = Path(last, null)
+        path.items().forEach { newPath = newPath.extend(it) }
+        return newPath
+    }
     fun contains(item: String): Boolean = last == item || (parent != null && parent.contains(item))
+    fun items(): List<String> = if (parent != null) parent.items() + last else listOf(last)
+    override fun toString(): String {
+        return items().toString()
+    }
 }
 
 fun readInput(filename: String): Map<String, List<String>> {
