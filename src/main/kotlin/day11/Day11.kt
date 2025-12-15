@@ -52,29 +52,31 @@ fun dfs(
     visited: Set<String>,
     results: MutableMap<Pair<String, String>, PartialResult>
 ) {
-    if (from == to) {
-        return
-    } else if (visited.contains(from)) {
-        return
-    } else if (results.contains(Pair(from, to))) {
+    if (from == to || visited.contains(from) || results.contains(Pair(from, to))) {
         return
     } else {
         val nextVisited = visited + from
-        var myResult = PartialResult(mutableMapOf())
+        val myResult = PartialResult(mutableMapOf())
         for (nextItem in connections[from]!!) {
             dfs(nextItem, to, connections, nextVisited, results)
             val nextResult = results[Pair(nextItem, to)]!!
-            if (from == "dac") {
-                myResult.plus(DAC_AND_FFT, nextResult.get(FFT_ONLY))
-                myResult.plus(DAC_ONLY, nextResult.get(OTHER))
-            } else if (from == "fft") {
-                myResult.plus(DAC_AND_FFT, nextResult.get(DAC_ONLY))
-                myResult.plus(FFT_ONLY, nextResult.get(OTHER))
-            } else {
-                myResult.plus(DAC_AND_FFT, nextResult.get(DAC_AND_FFT))
-                myResult.plus(DAC_ONLY, nextResult.get(DAC_ONLY))
-                myResult.plus(FFT_ONLY, nextResult.get(FFT_ONLY))
-                myResult.plus(OTHER, nextResult.get(OTHER))
+            when (from) {
+                "dac" -> {
+                    myResult.plus(DAC_AND_FFT, nextResult.get(FFT_ONLY))
+                    myResult.plus(DAC_ONLY, nextResult.get(OTHER))
+                }
+
+                "fft" -> {
+                    myResult.plus(DAC_AND_FFT, nextResult.get(DAC_ONLY))
+                    myResult.plus(FFT_ONLY, nextResult.get(OTHER))
+                }
+
+                else -> {
+                    myResult.plus(DAC_AND_FFT, nextResult.get(DAC_AND_FFT))
+                    myResult.plus(DAC_ONLY, nextResult.get(DAC_ONLY))
+                    myResult.plus(FFT_ONLY, nextResult.get(FFT_ONLY))
+                    myResult.plus(OTHER, nextResult.get(OTHER))
+                }
             }
         }
         results[Pair(from, to)] = myResult
