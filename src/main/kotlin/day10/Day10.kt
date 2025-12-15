@@ -25,7 +25,20 @@ class Day10(val filename: String) {
     }
 
     fun part2(): Long {
-        readInput(filename)
+        val machines = readInput(filename)
+        for (machine in machines) {
+            val posCounts = mutableMapOf<Int, Int>()
+            machine.toggles.forEach { toggle ->
+                toggle.forEach { pos ->
+                    posCounts.merge(
+                        pos,
+                        1,
+                        Int::plus
+                    )
+                }
+            }
+            if (!posCounts.any { it.value == 1 }) println(machine)
+        }
         return 1
     }
 }
@@ -51,7 +64,7 @@ fun dfs(
     }
 }
 
-data class Machine(val lights: Lights, val toggles: List<List<Int>>)
+data class Machine(val lights: Lights, val toggles: List<List<Int>>, val joltages: List<Int>)
 
 data class Lights(
     val state: List<Boolean>,
@@ -89,6 +102,8 @@ fun readInput(filename: String): List<Machine> {
                     .map { it.toInt() }
                     .toList()
             }
-        Machine(Lights(lights), toggles)
+        val joltages =
+            it.substring(joltageLBracket + 1, it.length - 1).split(",").map { it.toInt() }
+        Machine(Lights(lights), toggles, joltages)
     }
 }

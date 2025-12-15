@@ -23,7 +23,15 @@ class Day10Test {
         assertEquals(
             Machine(
                 Lights(listOf(false, true, true, false)),
-                listOf(listOf(3), listOf(1, 3), listOf(2), listOf(2, 3), listOf(0, 2), listOf(0, 1))
+                listOf(
+                    listOf(3),
+                    listOf(1, 3),
+                    listOf(2),
+                    listOf(2, 3),
+                    listOf(0, 2),
+                    listOf(0, 1)
+                ),
+                listOf(3, 5, 4, 7)
             ), machines[0]
         )
     }
