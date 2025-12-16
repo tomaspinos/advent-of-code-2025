@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation("com.google.ortools:ortools-java:9.11.4210")
 }
 
 tasks.test {

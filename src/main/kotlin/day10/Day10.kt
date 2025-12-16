@@ -1,5 +1,7 @@
 package day10
 
+import com.google.ortools.Loader
+import com.google.ortools.linearsolver.MPSolver
 import common.resourceFile
 
 fun main() {
@@ -25,21 +27,9 @@ class Day10(val filename: String) {
     }
 
     fun part2(): Long {
+        Loader.loadNativeLibraries()
         val machines = readInput(filename)
-        for (machine in machines) {
-            val posCounts = mutableMapOf<Int, Int>()
-            machine.toggles.forEach { toggle ->
-                toggle.forEach { pos ->
-                    posCounts.merge(
-                        pos,
-                        1,
-                        Int::plus
-                    )
-                }
-            }
-            if (!posCounts.any { it.value == 1 }) println(machine)
-        }
-        return 1
+        return machines.sumOf { machine -> lp(machine) }
     }
 }
 
@@ -62,6 +52,30 @@ fun dfs(
 
         dfs(machine, newLights, presses + 1, lightHistory)
     }
+}
+
+fun lp(machine: Machine): Long {
+    val solver = MPSolver.createSolver("SCIP")!!
+
+    val togglePresses = machine.toggles.indices
+        .map { solver.makeIntVar(0.0, Double.MAX_VALUE, "toggle_$it") }
+
+    machine.joltages.forEachIndexed { j, joltage ->
+        val constraint = solver.makeConstraint(joltage.toDouble(), joltage.toDouble(), "joltage_$j")
+        machine.toggles.forEachIndexed { t, toggle ->
+            if (j in toggle) {
+                constraint.setCoefficient(togglePresses[t], 1.0)
+            }
+        }
+    }
+
+    val objective = solver.objective()
+    for (togglePress in togglePresses) objective.setCoefficient(togglePress, 1.0)
+    objective.setMinimization()
+
+    solver.solve()
+
+    return objective.value().toLong()
 }
 
 data class Machine(val lights: Lights, val toggles: List<List<Int>>, val joltages: List<Int>)
